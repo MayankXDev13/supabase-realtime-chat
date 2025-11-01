@@ -22,13 +22,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { LoadingSwap } from "@/components/ui/loading-swap";
+import { createRoomSchema } from "@/services/supabase/schema/room";
+import { createRoom } from "@/services/supabase/actions/room";
+import { toast } from "sonner";
 
-const formSchema = z.object({
-  name: z.string().min(1).trim(),
-  isPublic: z.boolean(),
-});
-
-type FormData = z.infer<typeof formSchema>;
+type FormData = z.infer<typeof createRoomSchema>;
 
 export default function NewRoomPage() {
   const form = useForm<FormData>({
@@ -36,10 +34,15 @@ export default function NewRoomPage() {
       name: "",
       isPublic: false,
     },
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(createRoomSchema),
   });
 
-  function handleSubmit(data: FormData) {}
+  async function handleSubmit(data: FormData) {
+    const { error, message } = await createRoom(data);
+    if (error) {
+      toast.error(message);
+    }
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -98,7 +101,7 @@ export default function NewRoomPage() {
               <Field orientation={`horizontal`} className="w-full">
                 <Button
                   type="submit"
-                  className="flex-grow"
+                  className="grow"
                   disabled={form.formState.isSubmitting}
                 >
                   <LoadingSwap isLoading={form.formState.isSubmitting}>
